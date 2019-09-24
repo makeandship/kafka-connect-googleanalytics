@@ -1,15 +1,18 @@
 package org.mrtrustworthy.kafka.connect.googleanalytics.source;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.kafka.common.config.ConfigDef;
 import org.mrtrustworthy.kafka.connect.googleanalytics.GASourceConnector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.util.*;
-
 
 public class GAConnectorConfig {
     private static final Logger log = LoggerFactory.getLogger(GASourceConnector.class);
@@ -19,7 +22,7 @@ public class GAConnectorConfig {
     }
 
     // general config
-    public final static String TOPIC_CONFIG = "topic.prefix";
+    public final static String TOPIC_CONFIG = "topic.name";
     public final static String VIEW_CONFIG = "view.id";
     public final static String POLLING_FREQUENCY = "polling.frequency";
     public final static String DIMENSIONS = "fetch.dimensions";
@@ -37,28 +40,32 @@ public class GAConnectorConfig {
     public final static String AUTH_PROVIDER_X509_CERT_URL = "google.auth_provider_x509_cert_url";
     public final static String CLIENT_X509_CERT_URL = "google.client_x509_cert_url";
 
-
     public static final ConfigDef CONFIG_DEF = new ConfigDef()
-        // basic stuff
-        .define(VIEW_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "View Id of Google Analytics View, typically numeric value")
-        .define(POLLING_FREQUENCY, ConfigDef.Type.INT, ConfigDef.Importance.HIGH, "How frequently to poll for new data, in milliseconds")
-        .define(DIMENSIONS, ConfigDef.Type.LIST, ConfigDef.Importance.HIGH, "The dimensions to fetch")
-        .define(MEASURES, ConfigDef.Type.LIST, ConfigDef.Importance.HIGH, "The measures to fetch")
-        .define(TOPIC_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The topic to publish data to")
-        // Google analytics key
-        .define(TYPE, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics type")
-        .define(PROJECT_ID, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics project_id")
-        .define(PRIVATE_KEY_ID, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics private_key_id")
-        .define(PRIVATE_KEY, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics private_key")
-        .define(CLIENT_EMAIL, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics client_email")
-        .define(CLIENT_ID, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics client_id")
-        .define(AUTH_URI, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics auth_uri")
-        .define(TOKEN_URI, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics token_uri")
-        .define(AUTH_PROVIDER_X509_CERT_URL, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics auth_provider_x509_cert_url")
-        .define(CLIENT_X509_CERT_URL, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics client_x509_cert_url");
+            // basic stuff
+            .define(VIEW_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH,
+                    "View Id of Google Analytics View, typically numeric value")
+            .define(POLLING_FREQUENCY, ConfigDef.Type.INT, ConfigDef.Importance.HIGH,
+                    "How frequently to poll for new data, in milliseconds")
+            .define(DIMENSIONS, ConfigDef.Type.LIST, ConfigDef.Importance.HIGH, "The dimensions to fetch")
+            .define(MEASURES, ConfigDef.Type.LIST, ConfigDef.Importance.HIGH, "The measures to fetch")
+            .define(TOPIC_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The topic to publish data to")
+            // Google analytics key
+            .define(TYPE, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics type")
+            .define(PROJECT_ID, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics project_id")
+            .define(PRIVATE_KEY_ID, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH,
+                    "The google analytics private_key_id")
+            .define(PRIVATE_KEY, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics private_key")
+            .define(CLIENT_EMAIL, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics client_email")
+            .define(CLIENT_ID, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics client_id")
+            .define(AUTH_URI, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics auth_uri")
+            .define(TOKEN_URI, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics token_uri")
+            .define(AUTH_PROVIDER_X509_CERT_URL, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH,
+                    "The google analytics auth_provider_x509_cert_url")
+            .define(CLIENT_X509_CERT_URL, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH,
+                    "The google analytics client_x509_cert_url");
 
-
-    // This is one of {ConnectorConfig, TaskConfig} and allows us to use this class for both use cases
+    // This is one of {ConnectorConfig, TaskConfig} and allows us to use this class
+    // for both use cases
     private ConfigType configType;
 
     // basic stuff
@@ -81,7 +88,6 @@ public class GAConnectorConfig {
     private String client_x509_cert_url;
 
     public static GAConnectorConfig fromConfigMap(Map<String, String> map, ConfigType configType) {
-
 
         GAConnectorConfig conf = new GAConnectorConfig();
         // basic config
@@ -108,7 +114,8 @@ public class GAConnectorConfig {
     }
 
     /**
-     * @param maxTasks is ignored, we only spawn one
+     * @param maxTasks
+     *            is ignored, we only spawn one
      * @return a list containing only one serialized task config
      */
     public List<Map<String, String>> createTaskConfigurations(int maxTasks) {
@@ -129,7 +136,6 @@ public class GAConnectorConfig {
         config.put(MEASURES, String.join(",", this.measures));
         config.put(POLLING_FREQUENCY, Integer.toString(this.pollingFrequency));
 
-
         // GA key stuff
         config.put(TYPE, this.type);
         config.put(PROJECT_ID, this.project_id);
@@ -147,25 +153,25 @@ public class GAConnectorConfig {
     }
 
     /**
-     * Google apparently decided that the only acceptable way to parse credentials is to use an InputStream of JSON
-     * so, we'll assemble one here...
+     * Google apparently decided that the only acceptable way to parse credentials
+     * is to use an InputStream of JSON so, we'll assemble one here...
      *
      * @return an input stream consisting of an UTF-8 encoded json string
      */
     public InputStream getGoogleConfigurationAsInputStream() {
         String template = "\"%s\":\"%s\",\n";
-        String jsonString = "{" +
-            String.format(template, TYPE.replace("google.", ""), this.type) +
-            String.format(template, PROJECT_ID.replace("google.", ""), this.project_id) +
-            String.format(template, PRIVATE_KEY_ID.replace("google.", ""), this.private_key_id) +
-            String.format(template, PRIVATE_KEY.replace("google.", ""), this.private_key.replace("\n", "\\n")) +
-            String.format(template, CLIENT_EMAIL.replace("google.", ""), this.client_email) +
-            String.format(template, CLIENT_ID.replace("google.", ""), this.client_id) +
-            String.format(template, AUTH_URI.replace("google.", ""), this.auth_uri) +
-            String.format(template, TOKEN_URI.replace("google.", ""), this.token_uri) +
-            String.format(template, AUTH_PROVIDER_X509_CERT_URL.replace("google.", ""), this.auth_provider_x509_cert_url) +
-            String.format("\"%s\":\"%s\"", CLIENT_X509_CERT_URL.replace("google.", ""), this.client_x509_cert_url) +
-            "}";
+        String jsonString = "{" + String.format(template, TYPE.replace("google.", ""), this.type)
+                + String.format(template, PROJECT_ID.replace("google.", ""), this.project_id)
+                + String.format(template, PRIVATE_KEY_ID.replace("google.", ""), this.private_key_id)
+                + String.format(template, PRIVATE_KEY.replace("google.", ""), this.private_key.replace("\n", "\\n"))
+                + String.format(template, CLIENT_EMAIL.replace("google.", ""), this.client_email)
+                + String.format(template, CLIENT_ID.replace("google.", ""), this.client_id)
+                + String.format(template, AUTH_URI.replace("google.", ""), this.auth_uri)
+                + String.format(template, TOKEN_URI.replace("google.", ""), this.token_uri)
+                + String.format(template, AUTH_PROVIDER_X509_CERT_URL.replace("google.", ""),
+                        this.auth_provider_x509_cert_url)
+                + String.format("\"%s\":\"%s\"", CLIENT_X509_CERT_URL.replace("google.", ""), this.client_x509_cert_url)
+                + "}";
 
         try {
             return new ByteArrayInputStream(jsonString.getBytes("UTF-8"));
@@ -263,51 +269,41 @@ public class GAConnectorConfig {
         this.measures = measures;
     }
 
-
     public void setType(String type) {
         this.type = type;
     }
-
 
     public void setProject_id(String project_id) {
         this.project_id = project_id;
     }
 
-
     public void setPrivate_key_id(String private_key_id) {
         this.private_key_id = private_key_id;
     }
-
 
     public void setPrivate_key(String private_key) {
         this.private_key = private_key;
     }
 
-
     public void setClient_email(String client_email) {
         this.client_email = client_email;
     }
-
 
     public void setClient_id(String client_id) {
         this.client_id = client_id;
     }
 
-
     public void setAuth_uri(String auth_uri) {
         this.auth_uri = auth_uri;
     }
-
 
     public void setToken_uri(String token_uri) {
         this.token_uri = token_uri;
     }
 
-
     public void setAuth_provider_x509_cert_url(String auth_provider_x509_cert_url) {
         this.auth_provider_x509_cert_url = auth_provider_x509_cert_url;
     }
-
 
     public void setClient_x509_cert_url(String client_x509_cert_url) {
         this.client_x509_cert_url = client_x509_cert_url;
