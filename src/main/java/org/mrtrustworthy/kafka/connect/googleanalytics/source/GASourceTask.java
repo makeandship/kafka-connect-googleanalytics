@@ -66,7 +66,7 @@ public class GASourceTask extends SourceTask {
         Report report;
         try {
             report = this.fetcher.getReport();
-            this.fetcher.initializeLastSuccessfullDay();
+            this.fetcher.initializeLastDayIndexed();
         } catch (IOException e) {
             this.fetcher.incrementLastSuccessfullDay();
             log.error("Got IOException when polling for new records! Ignoring it, trying to proceed:" + e.getMessage());

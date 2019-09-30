@@ -34,7 +34,7 @@ public class GAReportFetcher {
     private AnalyticsReporting service;
 
     private String startDate;
-    private int lastSuccessfullDayIndex;
+    private int lastDayIndexed;
 
     public GAReportFetcher(GAConnectorConfig conf) {
         // TODO how can we update this on-demand?
@@ -49,14 +49,14 @@ public class GAReportFetcher {
      */
     public void maybeInitializeAnalyticsReporting() {
         if (this.service != null) {
-            this.startDate = this.lastSuccessfullDayIndex + "DaysAgo";
+            this.startDate = this.lastDayIndexed + "DaysAgo";
             return;
         }
 
         try {
             this.service = this.getAnalyticsService();
             this.startDate = this.conf.getProcessFrom();
-            this.lastSuccessfullDayIndex = 1;
+            this.lastDayIndexed = 1;
         } catch (IOException | GeneralSecurityException e) {
             throw new KafkaException("Error starting task, could not initialize AnalyticsReporting: " + e.toString());
         }
@@ -125,11 +125,11 @@ public class GAReportFetcher {
     }
 
     protected void incrementLastSuccessfullDay() {
-        this.lastSuccessfullDayIndex++;
+        this.lastDayIndexed++;
     }
 
-    protected void initializeLastSuccessfullDay() {
-        this.lastSuccessfullDayIndex = 1;
+    protected void initializeLastDayIndexed() {
+        this.lastDayIndexed = 1;
     }
 
 }
