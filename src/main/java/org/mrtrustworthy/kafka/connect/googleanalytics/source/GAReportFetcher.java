@@ -95,8 +95,6 @@ public class GAReportFetcher {
         dateRange.setStartDate(startDate);
         dateRange.setEndDate(FETCH_END_DATE);
 
-        System.out.println("fetch from : " + startDate);
-
         // Create the ReportRequest object.
         ReportRequest request = new ReportRequest().setViewId(this.conf.getViewId())
                 .setDateRanges(Collections.singletonList(dateRange)).setMetrics(this.getMetricsFromConfig())
