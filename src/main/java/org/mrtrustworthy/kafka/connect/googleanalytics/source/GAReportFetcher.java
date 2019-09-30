@@ -99,7 +99,7 @@ public class GAReportFetcher {
         // Create the ReportRequest object.
         ReportRequest request = new ReportRequest().setViewId(this.conf.getViewId())
                 .setDateRanges(Collections.singletonList(dateRange)).setMetrics(this.getMetricsFromConfig())
-                .setDimensions(this.getDimensionsFromConfig());
+                .setDimensions(this.getDimensionsFromConfig()).setPageSize(100000);
 
         ArrayList<ReportRequest> requests = new ArrayList<ReportRequest>();
         requests.add(request);
