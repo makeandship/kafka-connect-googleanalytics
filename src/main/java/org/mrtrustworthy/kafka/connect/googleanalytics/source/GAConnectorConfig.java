@@ -27,6 +27,7 @@ public class GAConnectorConfig {
     public final static String POLLING_FREQUENCY = "polling.frequency";
     public final static String DIMENSIONS = "fetch.dimensions";
     public final static String MEASURES = "fetch.measures";
+    public final static String PROCESS_FROM = "process.from";
 
     // Google key stuff
     public final static String TYPE = "google.type";
@@ -49,6 +50,8 @@ public class GAConnectorConfig {
             .define(DIMENSIONS, ConfigDef.Type.LIST, ConfigDef.Importance.HIGH, "The dimensions to fetch")
             .define(MEASURES, ConfigDef.Type.LIST, ConfigDef.Importance.HIGH, "The measures to fetch")
             .define(TOPIC_CONFIG, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The topic to publish data to")
+            .define(PROCESS_FROM, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH,
+                    "Start processing the data from, possible values 30DaysAgo, today, yesterday, lastWeek, lastMonth")
             // Google analytics key
             .define(TYPE, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics type")
             .define(PROJECT_ID, ConfigDef.Type.STRING, ConfigDef.Importance.HIGH, "The google analytics project_id")
@@ -74,6 +77,7 @@ public class GAConnectorConfig {
     private int pollingFrequency;
     private List<String> dimensions;
     private List<String> measures;
+    private String processFrom;
 
     // google analytics key stuff
     private String type;
@@ -97,6 +101,7 @@ public class GAConnectorConfig {
         conf.setDimensions(Arrays.asList(map.get(DIMENSIONS).split("\\s*,\\s*")));
         conf.setMeasures(Arrays.asList(map.get(MEASURES).split("\\s*,\\s*")));
         conf.setPollingFrequency(Integer.parseInt(map.get(POLLING_FREQUENCY)));
+        conf.setProcessFrom(map.get(PROCESS_FROM));
 
         // GA key config
         conf.setType(map.get(TYPE));
@@ -135,6 +140,7 @@ public class GAConnectorConfig {
         config.put(DIMENSIONS, String.join(",", this.dimensions));
         config.put(MEASURES, String.join(",", this.measures));
         config.put(POLLING_FREQUENCY, Integer.toString(this.pollingFrequency));
+        config.put(PROCESS_FROM, this.processFrom);
 
         // GA key stuff
         config.put(TYPE, this.type);
@@ -193,8 +199,16 @@ public class GAConnectorConfig {
         return topicName;
     }
 
+    public String getProcessFrom() {
+        return processFrom;
+    }
+
     public void setTopicName(String topicName) {
         this.topicName = topicName;
+    }
+
+    public void setProcessFrom(String processFrom) {
+        this.processFrom = processFrom;
     }
 
     public String getViewId() {
