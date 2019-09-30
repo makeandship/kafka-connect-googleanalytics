@@ -6,6 +6,7 @@ topic.name=core_ga_pageviews
 fetch.measures=sessions,hits
 fetch.dimensions=pageTitle,dateHourMinute
 polling.frequency=3000
+process.from=30DaysAgo
 
 # The following properties are copy-pasted from the key.json you get from google, make sure you remove the "'s and ,'s
 google.type=service_account

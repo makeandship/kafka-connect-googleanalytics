@@ -1,5 +1,5 @@
 
-CONFLUENT_PATH := ../confluent-4.0.0
+CONFLUENT_PATH := /Users/yassire/Documents/confluent-5.3.0
 
 run-kafka:
 	${CONFLUENT_PATH}/bin/confluent start

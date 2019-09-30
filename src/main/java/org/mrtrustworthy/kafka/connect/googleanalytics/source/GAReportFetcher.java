@@ -26,7 +26,6 @@ import kafka.common.KafkaException;
 
 public class GAReportFetcher {
     private static final String APPLICATION_NAME = "org.mrtrustworthy.kafka.connect.googleanalytics.GAReportFetcher";
-    private static final String FETCH_START_DATE = "30DaysAgo";
     private static final String FETCH_END_DATE = "yesterday";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
@@ -55,7 +54,7 @@ public class GAReportFetcher {
 
         try {
             this.service = this.getAnalyticsService();
-            this.startDate = FETCH_START_DATE;
+            this.startDate = this.conf.getProcessFrom();
         } catch (IOException | GeneralSecurityException e) {
             throw new KafkaException("Error starting task, could not initialize AnalyticsReporting: " + e.toString());
         }
