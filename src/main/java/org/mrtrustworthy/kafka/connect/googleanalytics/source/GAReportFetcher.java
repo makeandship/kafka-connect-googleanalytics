@@ -128,4 +128,8 @@ public class GAReportFetcher {
         this.lastSuccessfullDayIndex++;
     }
 
+    protected void initializeLastSuccessfullDay() {
+        this.lastSuccessfullDayIndex = 1;
+    }
+
 }
