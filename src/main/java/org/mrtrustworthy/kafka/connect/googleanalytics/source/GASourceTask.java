@@ -63,25 +63,58 @@ public class GASourceTask extends SourceTask {
     public List<SourceRecord> poll() throws InterruptedException {
         final ArrayList<SourceRecord> records = new ArrayList<>();
         this.fetcher.maybeInitializeAnalyticsReporting();
-        Report report;
+        List<Report> reports = new ArrayList<Report>();
         try {
-            report = this.fetcher.getReport();
-            this.fetcher.initializeLastDayIndexed();
+            reports = fetchPaginatedReports();
         } catch (IOException e) {
             this.fetcher.incrementLastSuccessfullDay();
             log.error("Got IOException when polling for new records! Ignoring it, trying to proceed:" + e.getMessage());
-            return records;
         }
+        this.fetcher.initializeLastDayIndexed();
 
-        List<Struct> structs = this.reportParser.parseReport(report, this.buildTopicName());
+        reports.forEach(report -> {
+            List<Struct> structs = this.reportParser.parseReport(report, this.buildTopicName());
 
-        for (Struct struct : structs) {
-            records.add(this.buildSourceRecord(struct));
-        }
+            for (Struct struct : structs) {
+                records.add(this.buildSourceRecord(struct));
+            }
+        });
 
         Thread.sleep(this.config.getPollingFrequency());
 
         return records;
+    }
+
+    /**
+     * Retrieve paginated reports
+     * 
+     * @return
+     * @throws IOException
+     */
+    private List<Report> fetchPaginatedReports() throws IOException {
+        List<Report> paginatedReports = new ArrayList<Report>();
+        int pageToken = 0;
+        Report report = this.fetcher.getReport(String.valueOf(pageToken));
+        paginatedReports.add(report);
+
+        int total = report.getData().getRowCount();
+        log.info("total records is: " + total);
+
+        while (report.getNextPageToken() != null) {
+            pageToken = Integer.valueOf(report.getNextPageToken());
+            log.info("polling from " + pageToken + " of " + total);
+            try {
+                report = this.fetcher.getReport(String.valueOf(pageToken));
+            } catch (IOException e) {
+                this.fetcher.incrementLastSuccessfullDay();
+                log.error("Got IOException when polling for new records! Ignoring it, trying to proceed:"
+                        + e.getMessage());
+            }
+            paginatedReports.add(report);
+            log.info("new pageToken is: " + pageToken);
+        }
+
+        return paginatedReports;
     }
 
     public SourceRecord buildSourceRecord(Struct struct) {

@@ -1,18 +1,22 @@
 package org.mrtrustworthy.kafka.connect.googleanalytics.source;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
-import com.google.api.services.analyticsreporting.v4.AnalyticsReporting;
-import com.google.api.services.analyticsreporting.v4.model.Report;
 import org.apache.kafka.connect.data.Struct;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
+import com.google.api.services.analyticsreporting.v4.AnalyticsReporting;
+import com.google.api.services.analyticsreporting.v4.model.Report;
 
 class GAReportFetcherTest {
 
@@ -25,17 +29,10 @@ class GAReportFetcherTest {
         } catch (IOException e) {
             assertTrue(false, "This should not throw - is the file there?");
         }
-        Map<String, String> map = prop.entrySet().stream().collect(
-            Collectors.toMap(
-                es -> es.getKey().toString(),
-                es -> es.getValue().toString()
-            )
-        );
+        Map<String, String> map = prop.entrySet().stream()
+                .collect(Collectors.toMap(es -> es.getKey().toString(), es -> es.getValue().toString()));
 
-        GAConnectorConfig conf = GAConnectorConfig.fromConfigMap(
-            map,
-            GAConnectorConfig.ConfigType.TASK_CONFIG
-        );
+        GAConnectorConfig conf = GAConnectorConfig.fromConfigMap(map, GAConnectorConfig.ConfigType.TASK_CONFIG);
         return conf;
     }
 
@@ -46,7 +43,6 @@ class GAReportFetcherTest {
         AnalyticsReporting rep = gafetcher.getAnalyticsService();
         assertNotNull(rep);
     }
-
 
     @Test
     void testStructAssembly() {
@@ -60,7 +56,7 @@ class GAReportFetcherTest {
             task.setReportParser(repParser);
 
             gafetcher.maybeInitializeAnalyticsReporting();
-            Report report = gafetcher.getReport();
+            Report report = gafetcher.getReport("0");
             assertNotNull(report);
             System.out.println("Report: " + report);
 

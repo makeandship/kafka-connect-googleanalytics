@@ -90,7 +90,7 @@ public class GAReportFetcher {
      * @throws IOException
      *             might fail
      */
-    protected Report getReport() throws IOException {
+    protected Report getReport(String pageToken) throws IOException {
         // Create the DateRange object.
         DateRange dateRange = new DateRange();
         dateRange.setStartDate(startDate);
@@ -99,7 +99,7 @@ public class GAReportFetcher {
         // Create the ReportRequest object.
         ReportRequest request = new ReportRequest().setViewId(this.conf.getViewId())
                 .setDateRanges(Collections.singletonList(dateRange)).setMetrics(this.getMetricsFromConfig())
-                .setDimensions(this.getDimensionsFromConfig()).setPageSize(100000);
+                .setDimensions(this.getDimensionsFromConfig()).setPageToken(pageToken);
 
         ArrayList<ReportRequest> requests = new ArrayList<ReportRequest>();
         requests.add(request);
