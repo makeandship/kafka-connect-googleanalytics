@@ -26,15 +26,11 @@ import kafka.common.KafkaException;
 
 public class GAReportFetcher {
     private static final String APPLICATION_NAME = "org.mrtrustworthy.kafka.connect.googleanalytics.GAReportFetcher";
-    private static final String FETCH_END_DATE = "yesterday";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
 
     private GAConnectorConfig conf;
 
     private AnalyticsReporting service;
-
-    private String startDate;
-    private int lastDayIndexed;
 
     public GAReportFetcher(GAConnectorConfig conf) {
         // TODO how can we update this on-demand?
@@ -49,14 +45,11 @@ public class GAReportFetcher {
      */
     public void maybeInitializeAnalyticsReporting() {
         if (this.service != null) {
-            this.startDate = this.lastDayIndexed + "DaysAgo";
             return;
         }
 
         try {
             this.service = this.getAnalyticsService();
-            this.startDate = this.conf.getProcessFrom();
-            this.lastDayIndexed = 1;
         } catch (IOException | GeneralSecurityException e) {
             throw new KafkaException("Error starting task, could not initialize AnalyticsReporting: " + e.toString());
         }
@@ -90,16 +83,11 @@ public class GAReportFetcher {
      * @throws IOException
      *             might fail
      */
-    protected Report getReport() throws IOException {
-        // Create the DateRange object.
-        DateRange dateRange = new DateRange();
-        dateRange.setStartDate(startDate);
-        dateRange.setEndDate(FETCH_END_DATE);
-
+    protected Report getReport(DateRange dateRange, String pageToken) throws IOException {
         // Create the ReportRequest object.
         ReportRequest request = new ReportRequest().setViewId(this.conf.getViewId())
                 .setDateRanges(Collections.singletonList(dateRange)).setMetrics(this.getMetricsFromConfig())
-                .setDimensions(this.getDimensionsFromConfig()).setPageSize(100000);
+                .setDimensions(this.getDimensionsFromConfig()).setPageToken(pageToken);
 
         ArrayList<ReportRequest> requests = new ArrayList<ReportRequest>();
         requests.add(request);
@@ -122,14 +110,6 @@ public class GAReportFetcher {
     private List<Dimension> getDimensionsFromConfig() {
         return this.conf.getDimensions().stream().map((m) -> new Dimension().setName("ga:" + m))
                 .collect(Collectors.toList());
-    }
-
-    protected void incrementLastSuccessfullDay() {
-        this.lastDayIndexed++;
-    }
-
-    protected void initializeLastDayIndexed() {
-        this.lastDayIndexed = 1;
     }
 
 }
