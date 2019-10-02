@@ -16,6 +16,7 @@ import org.apache.kafka.connect.data.Struct;
 import org.junit.jupiter.api.Test;
 
 import com.google.api.services.analyticsreporting.v4.AnalyticsReporting;
+import com.google.api.services.analyticsreporting.v4.model.DateRange;
 import com.google.api.services.analyticsreporting.v4.model.Report;
 
 class GAReportFetcherTest {
@@ -56,7 +57,10 @@ class GAReportFetcherTest {
             task.setReportParser(repParser);
 
             gafetcher.maybeInitializeAnalyticsReporting();
-            Report report = gafetcher.getReport("0");
+            DateRange dateRange = new DateRange();
+            dateRange.setStartDate("2DaysAgo");
+            dateRange.setEndDate("yesterday");
+            Report report = gafetcher.getReport(dateRange, "0");
             assertNotNull(report);
             System.out.println("Report: " + report);
 
