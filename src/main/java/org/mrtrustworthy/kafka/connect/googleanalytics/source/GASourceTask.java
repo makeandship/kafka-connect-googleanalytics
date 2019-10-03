@@ -92,9 +92,7 @@ public class GASourceTask extends SourceTask {
 
         log.info("Last recorded offset is == " + this.pageToken);
 
-        if (diff > DAY_IN_MS || PROCESS_FROM.equals(this.dateRange.getStartDate())) {
-            this.pageToken = "0";
-        } else if ("0".equals(this.pageToken)) {
+        if (diff < DAY_IN_MS && !PROCESS_FROM.equals(this.dateRange.getStartDate())) {
             // do nothing
             log.info("sleeping, don't wake me up.");
             Thread.sleep(this.config.getPollingFrequency());
@@ -110,8 +108,6 @@ public class GASourceTask extends SourceTask {
                 records.add(this.buildSourceRecord(struct));
             }
         });
-
-        // Thread.sleep(this.config.getPollingFrequency());
 
         return records;
     }
@@ -149,6 +145,7 @@ public class GASourceTask extends SourceTask {
         log.info("set the start date to: " + DEFAULT_START_DATE);
         this.dateRange.setStartDate(DEFAULT_START_DATE);
         this.pageToken = "0";
+        this.lastProcessedDate = new Date();
 
         return paginatedReports;
     }
