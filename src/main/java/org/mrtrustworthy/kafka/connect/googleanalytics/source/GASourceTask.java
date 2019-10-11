@@ -33,6 +33,7 @@ public class GASourceTask extends SourceTask {
     private String pageToken;
     private DateRange dateRange;
     private Date lastProcessedDate;
+    private boolean completed;
 
     public void setFetcher(GAReportFetcher fetcher) {
         this.fetcher = fetcher;
@@ -60,6 +61,7 @@ public class GASourceTask extends SourceTask {
         this.pageToken = "0";
         this.dateRange = range;
         this.lastProcessedDate = new Date();
+        this.completed = false;
     }
 
     /**
@@ -87,8 +89,15 @@ public class GASourceTask extends SourceTask {
     public List<SourceRecord> poll() throws InterruptedException {
         final ArrayList<SourceRecord> records = new ArrayList<>();
         this.fetcher.maybeInitializeAnalyticsReporting();
+        Map<String, Object> offset = context.offsetStorageReader()
+                .offset(Collections.singletonMap("key", "lastProcessedDate"));
 
         long diff = new Date().getTime() - this.lastProcessedDate.getTime();
+
+        if (offset != null && this.completed) {
+            this.dateRange.setStartDate(DEFAULT_START_DATE);
+            diff = new Date().getTime() - (Long) offset.get("value");
+        }
 
         log.info("Last recorded offset is == " + this.pageToken);
 
@@ -138,6 +147,7 @@ public class GASourceTask extends SourceTask {
                 log.info("new pageToken is: " + this.pageToken);
             }
         } catch (IOException e) {
+            this.completed = false;
             log.error("Got an IO exception when fetching paginated reports: " + e.getMessage());
             return paginatedReports;
         }
@@ -146,13 +156,14 @@ public class GASourceTask extends SourceTask {
         this.dateRange.setStartDate(DEFAULT_START_DATE);
         this.pageToken = "0";
         this.lastProcessedDate = new Date();
+        this.completed = true;
 
         return paginatedReports;
     }
 
     public SourceRecord buildSourceRecord(Struct struct) {
-        Map<String, String> sourcePartition = Collections.singletonMap("startDate", this.dateRange.getStartDate());
-        Map<String, String> sourceOffset = Collections.singletonMap("pageNumber", this.pageToken);
+        Map<String, String> sourcePartition = Collections.singletonMap("key", "lastProcessedDate");
+        Map<String, Long> sourceOffset = Collections.singletonMap("value", this.lastProcessedDate.getTime());
         return new SourceRecord(sourcePartition, sourceOffset, this.buildTopicName(), this.reportParser.getSchema(),
                 struct);
     }
