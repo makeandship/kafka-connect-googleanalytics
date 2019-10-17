@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.GeneralSecurityException;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
@@ -65,9 +64,9 @@ class GAReportFetcherTest {
             System.out.println("Report: " + report);
 
             repParser.maybeUpdateSchema(report, conf.getTopicName());
-            System.out.println("Schema: " + Objects.toString(repParser.getSchema()));
+            System.out.println("Schema: " + Objects.toString(repParser.getValueSchema()));
 
-            List<Struct> structs = repParser.createStructsOffReport(report);
+            Map<Struct, Struct> structs = repParser.createStructsOffReport(report);
             System.out.println("Structs: " + Objects.toString(structs));
 
         } catch (IOException e) {
