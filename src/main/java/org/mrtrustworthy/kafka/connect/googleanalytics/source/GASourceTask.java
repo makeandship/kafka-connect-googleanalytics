@@ -111,11 +111,9 @@ public class GASourceTask extends SourceTask {
         List<Report> reports = fetchPaginatedReports();
 
         reports.forEach(report -> {
-            List<Struct> structs = this.reportParser.parseReport(report, this.buildTopicName());
+            Map<Struct, Struct> structs = this.reportParser.parseReport(report, this.buildTopicName());
 
-            for (Struct struct : structs) {
-                records.add(this.buildSourceRecord(struct));
-            }
+            structs.forEach((k, v) -> records.add(this.buildSourceRecord(k, v)));
         });
 
         return records;
@@ -161,11 +159,11 @@ public class GASourceTask extends SourceTask {
         return paginatedReports;
     }
 
-    public SourceRecord buildSourceRecord(Struct struct) {
+    public SourceRecord buildSourceRecord(Struct key, Struct value) {
         Map<String, String> sourcePartition = Collections.singletonMap("key", "lastProcessedDate");
         Map<String, Long> sourceOffset = Collections.singletonMap("value", this.lastProcessedDate.getTime());
-        return new SourceRecord(sourcePartition, sourceOffset, this.buildTopicName(), this.reportParser.getSchema(),
-                struct);
+        return new SourceRecord(sourcePartition, sourceOffset, this.buildTopicName(), this.reportParser.getKeySchema(),
+                key, this.reportParser.getValueSchema(), value);
     }
 
     @Override
